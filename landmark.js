@@ -34,6 +34,12 @@ export const mockLandmarks = [
         weather: "yellow",
     })
 ]
+
+// export const weatherConditions = [{
+//     sunny: "yellow",
+//     cloudy: "grey",
+//     }
+// ]
 // constructor({name, lat, lon, img, weather, x, y}){
 // this.name = name;
 // this.x = x;

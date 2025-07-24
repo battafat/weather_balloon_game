@@ -1,5 +1,4 @@
-import { mockLandmarks } from './mockLandmarks.js';
-
+import { mockLandmarks } from './landmark.js';
 
 
 const s = ( sketch ) => {
@@ -9,14 +8,17 @@ const s = ( sketch ) => {
 
   let balloon;
   let balloonX = 0;
-  let balloonY = 300;
+  let balloonY = 0;
   let eiffelTower;
   let currentWeather;
   let mockLandmark;
 
   sketch.preload = function() {
-    eiffelTower = sketch.loadImage("eiffel_tower.jpg");
-    balloon = sketch.loadImage("balloon.png",
+    eiffelTower = sketch.loadImage("assets/eiffel_tower.jpg",
+      (img) => onImageLoadSuccess('eiffel_tower.png', img),
+      (err) => onImageLoadError('eiffel_tower.png', err)
+    );
+    balloon = sketch.loadImage("assets/balloon.png",
       (img) => onImageLoadSuccess('balloon.png', img),
       (err) => onImageLoadError('balloon.png', err)
     );
@@ -25,21 +27,17 @@ const s = ( sketch ) => {
     sketch.createCanvas(400, 400);
     
     mockLandmark = mockLandmarks[0];
-    console.log(`mockLandmark: ${mockLandmark}`);
+    console.log(`mockLandmark: ${mockLandmark.name}`);
   };
   sketch.draw = function() {
     currentWeather = mockLandmark.weather;
     console.log("Weather:", currentWeather);
     sketch.background(currentWeather);
-    sketch.image(eiffelTower, 0, 0, 200, 200);
+    sketch.image(eiffelTower, 200, 200, 200, 200);
     drawBalloon(sketch);
   }
 
 }
-
-
-
-
 
 //image success tests
 function onImageLoadSuccess(name, image) {

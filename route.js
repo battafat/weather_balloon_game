@@ -12,9 +12,3 @@ function parseRouteData(){
 routeSteps = [];
 return routeSteps
 }
-
-class Weather {
-    constructor(condition){
-        this.condition;
-    }
-}
