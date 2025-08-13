@@ -7,4 +7,6 @@ open 'index.html' in a browser to run the sketch
 
 
 # mock image attributions
-eiffel tower: Photo by <a href="/photographer/kclarkson-42147">kclarkson</a> on <a href="/">Freeimages.com</a>
+- eiffel tower: Photo by Pixabay: https://www.pexels.com/photo/eiffel-tower-illustration-60027/
+- Arc de triomphe: Photo by Pierre Blaché: https://www.pexels.com/photo/gray-concrete-building-structure-2389261/
+- Notre Dame Cathedral: Photo by Adrienn: https://www.pexels.com/photo/white-concrete-building-1460145/
