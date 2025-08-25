@@ -10,6 +10,7 @@ const s = ( sketch ) => {
   let balloon;
   let balloonX = 0;
   let balloonY = 0;
+  let speed = 40;
   let landmarkRenderer;
   let eiffelTower;
   let arcDeTriomphe;
@@ -46,8 +47,7 @@ const s = ( sketch ) => {
     return imageStore;
   }
   }
-
-  // do I need to pass sketch to every function? Or just the ones that rely on p5.js?
+  
   sketch.preload = function() {
     // preloadedImages = loadMockImageAssets(sketch, assetsToLoad);
     // balloon = preloadedImages['balloon.png'];
@@ -60,7 +60,7 @@ const s = ( sketch ) => {
   sketch.setup = function() { 
     landmarkRenderer = new LandmarkRenderer();
     sketch.createCanvas(400, 400);
-    // rawRouteData = fetchRoute(origin, destination); // for real data
+    //  rawRouteData = fetchRoute(origin, destination); // for real data
     // parsedRouteData = parseRouteResponse(rawRouteData);
     // pass mockRouteData until real API calls implemented
     landmarks = generateLandmarks(mockRouteData);
@@ -82,7 +82,9 @@ const s = ( sketch ) => {
     // sketch.image(eiffelTower, 200, 200, 200, 200);
     // sketch.image(arcDeTriomphe, 200, 200, 200, 200);
     // sketch.image(notreDame, 200, 200, 200, 200);
+    // push();
     sketch.background(220);
+    sketch.translate(-balloonX + 100, 0);
     console.log('draw running');
     for (let lm of landmarks){
       console.log('Calling drawLandmark for:', lm);
@@ -90,8 +92,24 @@ const s = ( sketch ) => {
       // landmarkRenderer.drawWeather(sketch, lm);
     }
     drawBalloon(sketch);
+    // pop();
   }
-
+  sketch.keyPressed = () => {
+    switch (sketch.keyCode) {
+      case sketch.RIGHT_ARROW:
+        balloonX += speed;
+        break;
+      case sketch.LEFT_ARROW:
+        balloonX -= speed;
+        break;
+      case sketch.UP_ARROW:
+        balloonY -= speed;
+        break;
+      case sketch.DOWN_ARROW:
+        balloonY += speed;
+        break;
+      }
+  };
 }
 
 //image success tests

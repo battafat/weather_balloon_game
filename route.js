@@ -1,4 +1,8 @@
 
+function getPlaceID(){
+    
+}
+
 function fetchRoute(origin, destination){
 // call the route API
 }
@@ -12,7 +16,7 @@ let routeData = []; // list of Waypoint objects.
 return routeData
 }
 
-class Waypoint {
+export class Waypoint {
     constructor({ lat, lon, time }) {
         this.lat = lat;
         this.lon = lon;

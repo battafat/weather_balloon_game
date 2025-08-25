@@ -1,0 +1,10 @@
+{
+  "type": "module",
+  "scripts": {
+    "test": "mocha 'test/**/*.js'"
+  },
+  "devDependencies": {
+    "chai": "^5.2.1",
+    "mocha": "^11.7.1"
+  }
+}

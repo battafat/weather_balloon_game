@@ -1,6 +1,6 @@
 import { mockRoute } from "./route.js";
 
-class Landmark {
+export class Landmark {
     constructor({ name, lat, lon, img, imgUrl, weather, x, y, time }) {
         this.name = name;
         this.x = x;
@@ -40,6 +40,8 @@ class Landmark {
 // ]
 // export const mockLandmarks = generateLandmarks(mockRoute);
 
+// takes a list of Waypoint obects.
+// parses each of those Waypoints to define the lat, lon, and time variables. 
 export function generateLandmarks(routeData){
     let landmarks = [];
     for (let i = 0; i < routeData.length; i++){
