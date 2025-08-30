@@ -1,6 +1,6 @@
 import { generateLandmarks, Landmark } from "../../landmark.js";
 import { strict as assert } from "assert";
-import { mockRoute, Waypoint } from "../../route.js";
+import { mockRoute, Waypoint } from "../../public/route.js";
 import { expect } from "chai";
 
 describe("generateLandmarks", function () {
