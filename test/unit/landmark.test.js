@@ -1,4 +1,4 @@
-import { generateLandmarks, Landmark } from "../../landmark.js";
+import { generateLandmarks, Landmark } from "../../public/landmark.js";
 import { strict as assert } from "assert";
 import { mockRoute, Waypoint } from "../../public/route.js";
 import { expect } from "chai";

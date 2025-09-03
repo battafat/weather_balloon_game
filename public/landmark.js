@@ -1,4 +1,5 @@
-import { mockRoute } from "./route.js";
+import { mockRoute, Waypoint } from "./route.js";
+
 
 export class Landmark {
     constructor({ name, lat, lon, img, imgUrl, weather, x, y, time }) {

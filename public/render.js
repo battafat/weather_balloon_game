@@ -17,11 +17,11 @@ export class LandmarkRenderer{
             if (landmark.weather) {
                 sketch.push();
                 let currentWeather = landmark.weather;
-                sketch.stroke(currentWeather);
-                sketch.strokeWeight(4);
-                sketch.noFill();
+                
+                sketch.fill(currentWeather);
+                sketch.noStroke();
                 console.log(`currentWeather: ${currentWeather}`);
-                sketch.text(currentWeather, landmark.x, landmark.y - 20);
+                sketch.text(`${currentWeather} skies`, landmark.x, landmark.y - 20);
 
                 sketch.pop();
             }
