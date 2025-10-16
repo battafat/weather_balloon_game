@@ -15,6 +15,7 @@
     "test": "test"
   },
   "dependencies": {
+    "@mapbox/polyline": "^1.2.1",
     "ansi-regex": "^6.1.0",
     "ansi-styles": "^4.3.0",
     "argparse": "^2.0.1",

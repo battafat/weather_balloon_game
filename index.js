@@ -41,40 +41,58 @@ app.get("/places", async (req, res) => {
 });
 
 app.get("/route", async (req, res) => {
-  const { origin, destination } = req.query;
+    const { origin, destination } = req.query;
 
-  if (!origin || !destination) {
-    return res.status(400).json({ error: "Missing origin or destination" });
-  }
+    if (!origin || !destination) {
+        return res.status(400).json({ error: "Missing origin or destination" });
+    }
 
-  const url = "https://routes.googleapis.com/directions/v2:computeRoutes";
+    const url = "https://routes.googleapis.com/directions/v2:computeRoutes";
 
-  const body = {
-    origin: { address: origin },
-    destination: { address: destination },
-    travelMode: "DRIVE",
-    polylineQuality: "OVERVIEW",
-  };
+    const body = {
+        origin: { address: origin },
+        destination: { address: destination },
+        travelMode: "DRIVE",
+        polylineQuality: "OVERVIEW",
+    };
 
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Goog-Api-Key": process.env.GOOGLE_PLACES_API_KEY,
-        "X-Goog-FieldMask": "routes.polyline.encodedPolyline",
-      },
-      body: JSON.stringify(body),
-    });
+    try {
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-Goog-Api-Key": process.env.GOOGLE_PLACES_API_KEY,
+                "X-Goog-FieldMask": "routes.polyline.encodedPolyline",
+            },
+            body: JSON.stringify(body),
+        });
 
-    const data = await response.json();
-    res.json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Something went wrong" });
-  }
+        const data = await response.json();
+
+        if (!data.routes || data.routes.length === 0) {
+            return res.status(404).json({ error: "No routes found" });
+        }
+
+        // Extract and decode the polyline
+        const encoded = data.routes[0].polyline.encodedPolyline;
+        const decoded = polyline.decode(encoded).map(([lat, lng]) => ({
+            lat,
+            lng,
+        }));
+
+        // Send both for clarity
+        res.json({
+            encodedPolyline: encoded,
+            decodedPolyline: decoded,
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Something went wrong computing the route" });
+    }
 });
 
+
+import polyline from "@mapbox/polyline";
 
 
 
