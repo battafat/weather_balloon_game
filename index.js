@@ -129,6 +129,40 @@ app.get("/places-along-route", async (req, res) => {
     }
 });
 
+app.get("/weather", async (req, res) => {
+    const { lat, lng } = req.query;
+
+    if (!lat || !lng) {
+        return res.status(400).json({ error: "Missing lat or lng query parameters" });
+    }
+
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+    const url = `https://weather.googleapis.com/v1/forecast/hours:lookup?key=${apiKey}&location.latitude=${lat}&location.longitude=${lng}`;
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        // ✅ Handle structure correctly:
+        const forecastHours = data?.details?.forecastHours;
+
+        if (!forecastHours || forecastHours.length === 0) {
+            return res.status(404).json({ error: "No weather data found", details: data });
+        }
+
+        // ✅ Return only the useful portion
+        res.json({
+            forecastHours,
+            source: "Google Weather API",
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to fetch weather data" });
+    }
+});
+
+
+
 // ✅ Start the server
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
