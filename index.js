@@ -49,7 +49,7 @@ async function getWalkingRoute(origin, destination, apiKey) {
 
 // ✅ Combine all decoded polylines into one long list
 function combineAllPolylines(steps) {
-    return steps.flatMap(step => step.decodedPolyline);
+    return steps.flatMap((step) => step.decodedPolyline);
 }
 
 // ✅ Sample evenly spaced points from the combined polyline
@@ -74,7 +74,9 @@ function sampleCoordinates(decodedPolyline, numSamples = 10) {
 
 // ✅ Use Google Places Text Search API to get a standardized address
 async function getFormattedAddress(query, apiKey) {
-    const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${apiKey}`;
+    const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(
+        query
+    )}&key=${apiKey}`;
 
     const response = await fetch(url);
     const data = await response.json();
@@ -84,13 +86,48 @@ async function getFormattedAddress(query, apiKey) {
         return query; // fallback: just return original input
     }
 
-    // Return the best match’s formatted address
     return data.results[0].formatted_address;
 }
 
+// ✅ Get a *random unique* nearby photo for one coordinate using Places API
+async function getNearbyPhoto(lat, lng, apiKey, usedPhotoRefs = new Set()) {
+    const nearbyUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=300&key=${apiKey}`;
 
+    const response = await fetch(nearbyUrl);
+    const data = await response.json();
 
-// ✅ /route endpoint — walking mode + step durations + sampled coordinates
+    if (data.status !== "OK" || !data.results.length) {
+        console.warn(`⚠️ No nearby place found for ${lat},${lng}`);
+        return null;
+    }
+
+    // Filter out places with no photos or already used photo references
+    const candidates = data.results.filter(
+        (p) =>
+            p.photos?.length &&
+            !usedPhotoRefs.has(p.photos[0].photo_reference)
+    );
+
+    if (candidates.length === 0) {
+        console.warn(`⚠️ No new photos found for ${lat},${lng}`);
+        return null;
+    }
+
+    // Pick a random unused place
+    const place = candidates[Math.floor(Math.random() * candidates.length)];
+    const photoRef = place.photos[0].photo_reference;
+    usedPhotoRefs.add(photoRef);
+
+    const photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${photoRef}&key=${apiKey}`;
+
+    return {
+        name: place.name,
+        photoUrl,
+        location: place.geometry.location,
+    };
+}
+
+// ✅ /route endpoint — walking mode + step durations + sampled coordinates + nearby photos
 app.get("/route", async (req, res) => {
     const { origin, destination } = req.query;
 
@@ -101,7 +138,6 @@ app.get("/route", async (req, res) => {
     try {
         const apiKey = process.env.GOOGLE_PLACES_API_KEY;
 
-        // ✅ Clean up origin & destination before calling Routes API
         const cleanOrigin = await getFormattedAddress(origin, apiKey);
         const cleanDestination = await getFormattedAddress(destination, apiKey);
 
@@ -110,7 +146,6 @@ app.get("/route", async (req, res) => {
 
         const route = await getWalkingRoute(cleanOrigin, cleanDestination, apiKey);
 
-
         const totalDurationSeconds = parseFloat(route.duration.replace("s", "")) || 0;
         const totalDistanceMeters = route.distanceMeters || 1;
 
@@ -118,9 +153,9 @@ app.get("/route", async (req, res) => {
         let cumulativeSeconds = 0;
 
         const stepsWithArrival = route.legs[0].steps.map((step) => {
-            const durationSeconds = (step.distanceMeters / totalDistanceMeters) * totalDurationSeconds;
+            const durationSeconds =
+                (step.distanceMeters / totalDistanceMeters) * totalDurationSeconds;
             cumulativeSeconds += durationSeconds;
-
             const arrivalTime = new Date(startTime + cumulativeSeconds * 1000).toISOString();
 
             const decodedStep = polyline
@@ -137,15 +172,25 @@ app.get("/route", async (req, res) => {
             };
         });
 
-        // ✅ Combine and sample here
         const allPoints = combineAllPolylines(stepsWithArrival);
         const sampledPoints = sampleCoordinates(allPoints, 10);
+
+        // ✅ Track used photo references globally for this request
+        const usedPhotoRefs = new Set();
+
+        // ✅ Fetch unique nearby photos in parallel
+        const nearbyPhotos = await Promise.all(
+            sampledPoints.map(async (point) => {
+                const photo = await getNearbyPhoto(point.lat, point.lng, apiKey, usedPhotoRefs);
+                return { point, photo };
+            })
+        );
 
         res.json({
             totalDuration: route.duration,
             totalDistance: route.distanceMeters,
-            steps: stepsWithArrival,
-            sampledPoints, // 👈 Add the 10 sampled coordinates
+            sampledPoints,
+            nearbyPhotos,
         });
     } catch (err) {
         console.error("❌ Error computing walking route:", err);
