@@ -3,10 +3,15 @@ import fetch from "node-fetch";
 import polyline from "@mapbox/polyline";
 import dotenv from "dotenv";
 
+
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+app.use(express.static('public'));
+app.get("/", (req, res) => {
+    res.sendFile(process.cwd() + "/public/index.html");
+});
 
 // ✅ Helper function to call Google Routes API (walking + durations)
 async function getWalkingRoute(origin, destination, apiKey) {

@@ -1,5 +1,5 @@
 import { generateLandmarks, mockUpdateWeather } from './landmark.js';
-import { mockRoute } from './route.js';
+import { mockRoute, fetchRoute } from './route.js';
 import { LandmarkRenderer } from './render.js';
 
 const s = ( sketch ) => {
@@ -12,25 +12,26 @@ const s = ( sketch ) => {
   let balloonY = 0;
   let speed = 40;
   let landmarkRenderer;
-  let eiffelTower;
-  let arcDeTriomphe;
-  let notreDame;
+  // let eiffelTower;
+  // let arcDeTriomphe;
+  // let notreDame;
   let sketchHeight;
   
   console.log('sketchHeight: ', sketchHeight);
   // let currentWeather;
   // let mockLandmark;
-  let assetsToLoad = [
-    'balloon.png',
-    'eiffel_tower.jpg',
-    'arc_de_triomphe.jpg',
-    'notre_dame_cathedral.jpg',
-  ];
-  let preloadedImages = {};
+  // let assetsToLoad = [
+  //   'balloon.png',
+  //   'eiffel_tower.jpg',
+  //   'arc_de_triomphe.jpg',
+  //   'notre_dame_cathedral.jpg',
+  // ];
+  // let preloadedImages = {};
   let landmarks = [];
-  // let origin;
-  // let destination;
-  let mockRouteData = mockRoute;
+  let origin;
+  let destination;
+  let routeData = [];
+
   // let rawRouteData;
   // let routeData;
 
@@ -60,24 +61,55 @@ const s = ( sketch ) => {
     notreDame = sketch.loadImage('assets/notre_dame_cathedral.jpg');
   };
 
-  sketch.setup = function() { 
+  console.log("fetchRoute is:", fetchRoute);
+
+
+  sketch.setup = async function () {
     landmarkRenderer = new LandmarkRenderer();
     sketch.createCanvas(400, 400);
     sketchHeight = sketch.height;
-    //  rawRouteData = fetchRoute(origin, destination); // for real data
-    // parsedRouteData = parseRouteResponse(rawRouteData);
-    // pass mockRouteData until real API calls implemented
-    landmarks = generateLandmarks(mockRouteData, sketchHeight/2);
-    console.log('landmarks:', landmarks);
-    for (let i = 0; i < landmarks.length; i++){
-      mockUpdateWeather(landmarks[i]);
-      // setImage(lm); // this will be used when real data is used
-      // landmarks[i].img = preloadedImages[i]; // I think it will make sense to load the images
-      landmarks[i].img = [eiffelTower, arcDeTriomphe, notreDame][i];
+
+    origin = "Westroads Mall Omaha";
+    destination = "First National Bank, Omaha, NE";
+
+    try {
+      console.log("🛰️ Calling fetchRoute...");
+      routeData = await fetchRoute(origin, destination);
+      console.log("✅ Fetched route data:", routeData);
+    } catch (err) {
+      console.error("Error fetching route:", err);
     }
-    console.log('landmarks with weather updated:', landmarks);
-    // console.log(`mockLandmark: ${mockLandmark.name}`);
+
+
+
+    // fallback to mock data if API fails
+    if (!routeData.length) {
+      console.warn("Using mock route fallback");
+      routeData = mockRoute;
+    }
+
+    landmarks = generateLandmarks(routeData, sketchHeight / 2);
+    console.log("🏗️ Generated landmarks:", landmarks);
+
+    for (let i = 0; i < landmarks.length; i++) {
+      mockUpdateWeather(landmarks[i]);
+      const wp = routeData[i];
+
+      if (!wp.photoUrl) {
+        console.warn("Missing photo URL for waypoint:", wp);
+        debugger; // 🧩 Execution will pause in the browser here
+      }
+      if (wp.photoUrl) {
+        sketch.loadImage(wp.photoUrl, (img) => {
+          landmarks[i].img = img;
+          console.log(`✅ Image loaded for landmark ${i}`);
+        }, (err) => {
+          console.error(`Failed to load image for ${wp.photoUrl}`, err);
+        });
+      }
+    }
   };
+
   
   sketch.draw = function() {
     // currentWeather = mockLandmark.weather;
