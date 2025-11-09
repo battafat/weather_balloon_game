@@ -48,8 +48,11 @@ export function generateLandmarks(routeData, sketchHeight){
     for (let i = 0; i < routeData.length; i++){
         let waypoint = routeData[i];
         let landmark = new Landmark({
+            name: waypoint.name,
             lat: waypoint.lat, 
             lon: waypoint.lon,
+            // img: waypoint.img,
+            img: waypoint.photoUrl,
             x: 400 + i * 700,
             y: sketchHeight,
             time: waypoint.time

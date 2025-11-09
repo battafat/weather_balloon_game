@@ -12,9 +12,9 @@ const s = ( sketch ) => {
   let balloonY = 0;
   let speed = 40;
   let landmarkRenderer;
-  // let eiffelTower;
-  // let arcDeTriomphe;
-  // let notreDame;
+  let eiffelTower;
+  let arcDeTriomphe;
+  let notreDame;
   let sketchHeight;
   
   console.log('sketchHeight: ', sketchHeight);
@@ -65,12 +65,14 @@ const s = ( sketch ) => {
 
 
   sketch.setup = async function () {
+    console.log("fetchRoute in sketch.js is:", fetchRoute);
+
     landmarkRenderer = new LandmarkRenderer();
     sketch.createCanvas(400, 400);
     sketchHeight = sketch.height;
 
-    origin = "Westroads Mall Omaha";
-    destination = "First National Bank, Omaha, NE";
+    origin = "10000 California St Suite 1221, Omaha, NE 68114, United States";
+    destination = "1620 Dodge St, Omaha, NE 68102, United States";
 
     try {
       console.log("🛰️ Calling fetchRoute...");
