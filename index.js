@@ -123,7 +123,7 @@ async function getNearbyPhoto(lat, lng, apiKey, usedPhotoRefs = new Set()) {
     const photoRef = place.photos[0].photo_reference;
     usedPhotoRefs.add(photoRef);
 
-    const photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${photoRef}&key=${apiKey}`;
+    const photoUrl = `/photo?ref=${photoRef}`;
 
     return {
         name: place.name,
@@ -202,6 +202,45 @@ app.get("/route", async (req, res) => {
         res.status(500).json({ error: "Something went wrong computing the walking route" });
     }
 });
+
+// ✅ Proxy route to serve Google Place photos and avoid CORS issues
+app.get("/photo", async (req, res) => {
+    const { ref } = req.query;
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+
+    if (!ref) {
+        return res.status(400).send("Missing photo reference");
+    }
+
+    try {
+        const photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${ref}&key=${apiKey}`;
+        const response = await fetch(photoUrl);
+
+        if (!response.ok) {
+            throw new Error(`Google photo fetch failed: ${response.status}`);
+        }
+
+        // The Google photo endpoint returns a redirect (302) to the actual image.
+        // We need to follow it manually to get the binary data.
+        const finalUrl = response.url;
+        const imageResponse = await fetch(finalUrl);
+
+        if (!imageResponse.ok) {
+            throw new Error(`Final image fetch failed: ${imageResponse.status}`);
+        }
+
+        const buffer = await imageResponse.arrayBuffer();
+
+        // ✅ Serve image data with proper headers
+        res.setHeader("Content-Type", "image/jpeg");
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.send(Buffer.from(buffer));
+    } catch (err) {
+        console.error("❌ Error fetching photo:", err);
+        res.status(500).send("Failed to fetch photo");
+    }
+});
+
 
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);

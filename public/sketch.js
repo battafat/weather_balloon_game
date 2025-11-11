@@ -92,7 +92,7 @@ const s = ( sketch ) => {
 
     landmarks = generateLandmarks(routeData, sketchHeight / 2);
     console.log("🏗️ Generated landmarks:", landmarks);
-
+    
     for (let i = 0; i < landmarks.length; i++) {
       mockUpdateWeather(landmarks[i]);
       const wp = routeData[i];
