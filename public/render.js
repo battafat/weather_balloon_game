@@ -25,7 +25,7 @@ export class LandmarkRenderer{
 
                 sketch.pop();
             }
-            if (landmark.img){
+            if (landmark.img && landmark.img.width > 0 && landmark.img.height > 0){
                 sketch.image(landmark.img, landmark.x, landmark.y, imgWidth, imgHeight);
                 // TODO: Can this be less messy?
                 // landmark name text above landmark image
@@ -38,6 +38,7 @@ export class LandmarkRenderer{
                     sketch.pop();
                 }
             }else{
+                console.warn("⏳ Skipping draw — image not ready for", landmark.name);
                 sketch.rect(landmark.x, sketch.height - 200, 200, 200);
             }
             
