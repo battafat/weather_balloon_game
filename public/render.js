@@ -32,7 +32,7 @@ export class LandmarkRenderer{
                 if (landmark.name) {
                     sketch.push();
                     sketch.fill(100);
-                    sketch.textAlign(CENTER);
+                    sketch.textAlign(sketch.CENTER);
                     sketch.textSize(16);
                     sketch.text(landmark.name, landmark.x, landmark.y - 10);
                     sketch.pop();
