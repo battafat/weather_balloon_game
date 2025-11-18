@@ -12,6 +12,37 @@ app.use(express.static('public'));
 app.get("/", (req, res) => {
     res.sendFile(process.cwd() + "/public/index.html");
 });
+app.get("/autocomplete", async (req, res) => {
+    const { input } = req.query;
+    if (!input) return res.status(400).json({ error: "Missing input" });
+
+    try {
+        const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+
+        const url = "https://places.googleapis.com/v1/places:autocomplete?key=" + apiKey;
+
+        const body = {
+            input,
+        };
+
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+        });
+
+        const data = await response.json();
+        console.log("🔹 Google Autocomplete full response:", JSON.stringify(data, null, 2)); // log everything
+        res.json(data); // just return everything for testing
+
+    } catch (err) {
+        console.error("❌ Autocomplete error:", err);
+        res.status(500).json({ error: "Failed to fetch autocomplete" });
+    }
+});
+
+
+
 
 // ✅ Helper function to call Google Routes API (walking + durations)
 async function getWalkingRoute(origin, destination, apiKey) {

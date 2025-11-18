@@ -28,8 +28,10 @@ const s = ( sketch ) => {
   // ];
   // let preloadedImages = {};
   let landmarks = [];
-  let origin;
-  let destination;
+  let origin = window.selectedOrigin;
+  let destination = window.selectedDestination;
+  console.log("User selected origin:", origin);
+  console.log("User selected destination:", destination);
   let routeData = [];
 
   // let rawRouteData;
@@ -65,14 +67,21 @@ const s = ( sketch ) => {
 
 
   sketch.setup = async function () {
+    if (!origin || !destination) {
+      console.error("Missing origin or destination passed from index.html");
+      return;
+    }
+
     console.log("fetchRoute in sketch.js is:", fetchRoute);
 
     landmarkRenderer = new LandmarkRenderer();
     sketch.createCanvas(400, 400);
     sketchHeight = sketch.height;
 
-    origin = "10000 California St Suite 1221, Omaha, NE 68114, United States";
-    destination = "1620 Dodge St, Omaha, NE 68102, United States";
+    // origin = "10000 California St Suite 1221, Omaha, NE 68114, United States";
+    // destination = "1620 Dodge St, Omaha, NE 68102, United States";
+    // origin = "empire state building";
+    // destination = "central park, new york, 10019";
 
     try {
       console.log("🛰️ Calling fetchRoute...");

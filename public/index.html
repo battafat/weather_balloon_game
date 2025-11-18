@@ -1,19 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Sketch</title>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sketch Journey</title>
 
-    <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="stylesheet" type="text/css" href="style.css">
 
-    <script src="libraries/p5.min.js"></script>
-    <script src="libraries/p5.sound.min.js"></script>
-  </head>
+  <script src="libraries/p5.min.js"></script>
+  <script src="libraries/p5.sound.min.js"></script>
+</head>
 
-  <body>
-    <script type="module" src="/sketch.js"></script>
+<body>
 
-  </body>
+  <div id="controls" style="padding: 20px;">
+    <input id="originBox" placeholder="Start location" style="width: 300px;">
+    <div id="originSuggestions" class="suggestions"></div>
+
+    <br><br>
+
+    <input id="destinationBox" placeholder="Destination" style="width: 300px;">
+    <div id="destinationSuggestions" class="suggestions"></div>
+
+    <br><br>
+
+    <button id="startBtn">Start Journey</button>
+  </div>
+
+  <script type="module">
+    let origin = null;
+    let destination = null;
+
+    async function fetchSuggestions(query) {
+        if (!query || query.length < 3) return [];
+        try {
+          const res = await fetch(`/autocomplete?input=${encodeURIComponent(query)}`);
+          if (!res.ok) return [];
+          const data = await res.json();
+
+          // Map the server response into { description, placeId } objects
+          return (data.suggestions || []).map(item => {
+            const pp = item.placePrediction;
+            return {
+              description: pp.text?.text || pp.structuredFormat?.mainText?.text || "",
+              placeId: pp.placeId
+            };
+          });
+        console.log("Suggestions returned:", results);
+
+        } catch (e) {
+          return [];
+        }
+      }
+
+
+    function setupInput(inputEl, suggestionsEl, setter) {
+      inputEl.addEventListener("input", async () => {
+        const q = inputEl.value;
+        const results = await fetchSuggestions(q);
+
+        suggestionsEl.innerHTML = "";
+
+        results.forEach((item) => {
+          const div = document.createElement("div");
+          div.className = "suggestion-item";
+          div.textContent = item.description;
+          div.onclick = () => {
+            console.log("Clicked suggestion:", item.description);
+            inputEl.value = item.description;
+            setter(item.description);
+            suggestionsEl.innerHTML = "";
+          };
+          suggestionsEl.appendChild(div);
+        });
+      });
+    }
+
+    // Attach logic to both input fields
+    setupInput(
+      document.getElementById("originBox"),
+      document.getElementById("originSuggestions"),
+      (val) => (origin = val)
+    );
+
+    setupInput(
+      document.getElementById("destinationBox"),
+      document.getElementById("destinationSuggestions"),
+      (val) => (destination = val)
+    );
+
+    document.getElementById("startBtn").onclick = () => {
+      if (!origin || !destination) {
+        alert("Please select both origin and destination.");
+        return;
+      }
+
+      // Expose to sketch.js
+      window.selectedOrigin = origin;
+      window.selectedDestination = destination;
+
+      document.getElementById("controls").style.display = "none";
+
+      import("/sketch.js");
+    };
+  </script>
+
+  <style>
+    .suggestions {
+      background: white;
+      border: 1px solid #ccc;
+      width: 300px;
+      position: absolute;
+      z-index: 10;
+    }
+
+    .suggestion-item {
+      padding: 6px;
+      cursor: pointer;
+    }
+
+    .suggestion-item:hover {
+      background: #eee;
+    }
+  </style>
+
+</body>
+
 </html>
