@@ -1,18 +1,31 @@
-import express from "express";
-import fetch from "node-fetch";
-import polyline from "@mapbox/polyline";
-import dotenv from "dotenv";
+//useful documentation about routesAPI input/body/mask expectations:
+//https://developers.google.com/maps/documentation/routes/compute_route_directions
+
+import express from "express"; // a web framework for building HTTP endpoints
+import fetch from "node-fetch"; // a module for Fetch API in node.js. Enables server-side HTTP calls to Google APIs 
+import polyline from "@mapbox/polyline"; // used to decode google polyline into [lat, lng] coordinate pairs
+import dotenv from "dotenv"; // module to load enviromnet variables from .env file to hide API keys
 
 
-dotenv.config();
+dotenv.config(); // loads the variables (like google API key) into Node.js runtime.
 
-const app = express();
+const app = express(); // initializes the express app
+// process: a global object representing the running Node process
+// pocess.env is an object containing environment variables
+// sets PORT to number provided by hosting env or 3000 if none
 const PORT = process.env.PORT || 3000;
+//TODO: use a cache and/or reverse proxy
+// https://expressjs.com/en/advanced/best-practice-performance.html#use-a-reverse-proxy
 app.use(express.static('public'));
-app.get("/", (req, res) => {
-    res.sendFile(process.cwd() + "/public/index.html");
-});
+// app.get("/", (req, res) => {
+    // sends a file to the browser
+//     res.sendFile(process.cwd() + "/public/index.html");
+// });
+
+//server endpoint that gets called when a client (browser) sends an HTTP request
+
 app.get("/autocomplete", async (req, res) => {
+    // const input = req.query.input
     const { input } = req.query;
     if (!input) return res.status(400).json({ error: "Missing input" });
 
@@ -30,10 +43,11 @@ app.get("/autocomplete", async (req, res) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),
         });
-
+        //parse JSON into a JavaScript object
         const data = await response.json();
         console.log("🔹 Google Autocomplete full response:", JSON.stringify(data, null, 2)); // log everything
-        res.json(data); // just return everything for testing
+        //serialize JavaScript object into JSON
+        res.json(data); // just return everything for testing. This ends the response and forwards it to the client.
 
     } catch (err) {
         console.error("❌ Autocomplete error:", err);
