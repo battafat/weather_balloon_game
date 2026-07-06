@@ -17,7 +17,7 @@ const s = ( sketch ) => {
   let notreDame;
   let sketchHeight;
   
-  console.log('sketchHeight: ', sketchHeight);
+  // console.log('sketchHeight: ', sketchHeight);
   // let currentWeather;
   // let mockLandmark;
   // let assetsToLoad = [
@@ -30,8 +30,8 @@ const s = ( sketch ) => {
   let landmarks = [];
   let origin = window.selectedOrigin;
   let destination = window.selectedDestination;
-  console.log("User selected origin:", origin);
-  console.log("User selected destination:", destination);
+  // console.log("User selected origin:", origin);
+  // console.log("User selected destination:", destination);
   let routeData = [];
 
   // let rawRouteData;
@@ -49,7 +49,7 @@ const s = ( sketch ) => {
     },
       (err) => onImageLoadError(`${asset}`, err)
   );
-    console.log(`imageStore: ${imageStore}`);
+    // console.log(`imageStore: ${imageStore}`);
     return imageStore;
   }
   }
@@ -63,16 +63,16 @@ const s = ( sketch ) => {
     notreDame = sketch.loadImage('assets/notre_dame_cathedral.jpg');
   };
 
-  console.log("fetchRoute is:", fetchRoute);
+  // console.log("fetchRoute is:", fetchRoute);
 
 
   sketch.setup = async function () {
     if (!origin || !destination) {
-      console.error("Missing origin or destination passed from index.html");
+      // console.error("Missing origin or destination passed from index.html");
       return;
     }
 
-    console.log("fetchRoute in sketch.js is:", fetchRoute);
+    // console.log("fetchRoute in sketch.js is:", fetchRoute);
 
     landmarkRenderer = new LandmarkRenderer();
     sketch.createCanvas(400, 400);
@@ -84,38 +84,38 @@ const s = ( sketch ) => {
     // destination = "central park, new york, 10019";
 
     try {
-      console.log("🛰️ Calling fetchRoute...");
+      // console.log("🛰️ Calling fetchRoute...");
       routeData = await fetchRoute(origin, destination);
-      console.log("✅ Fetched route data:", routeData);
+      // console.log("✅ Fetched route data:", routeData);
     } catch (err) {
-      console.error("Error fetching route:", err);
+      // console.error("Error fetching route:", err);
     }
 
 
 
     // fallback to mock data if API fails
     if (!routeData.length) {
-      console.warn("Using mock route fallback");
+      // console.warn("Using mock route fallback");
       routeData = mockRoute;
     }
 
     landmarks = generateLandmarks(routeData, sketchHeight / 2);
-    console.log("🏗️ Generated landmarks:", landmarks);
+    // console.log("🏗️ Generated landmarks:", landmarks);
     
     for (let i = 0; i < landmarks.length; i++) {
       mockUpdateWeather(landmarks[i]);
       const wp = routeData[i];
 
       if (!wp.photoUrl) {
-        console.warn("Missing photo URL for waypoint:", wp);
+        // console.warn("Missing photo URL for waypoint:", wp);
         debugger; // 🧩 Execution will pause in the browser here
       }
       if (wp.photoUrl) {
         sketch.loadImage(wp.photoUrl, (img) => {
           landmarks[i].img = img;
-          console.log(`✅ Image loaded for landmark ${i}`);
+          // console.log(`✅ Image loaded for landmark ${i}`);
         }, (err) => {
-          console.error(`Failed to load image for ${wp.photoUrl}`, err);
+          // console.error(`Failed to load image for ${wp.photoUrl}`, err);
         });
       }
     }

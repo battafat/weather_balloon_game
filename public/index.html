@@ -9,12 +9,38 @@
   <link rel="stylesheet" type="text/css" href="style.css">
 
   <script src="libraries/p5.min.js"></script>
-  <script src="libraries/p5.sound.min.js"></script>
 </head>
 
 <body>
-
   <div id="controls" style="padding: 20px;">
+    <input id="originBox" placeholder="origin address">
+    <div id="originSuggestions" class="suggestions"></div>
+    <br><br>
+    <input id="destinationBox" placeholder="destination address">
+    <div id="destinationSuggestions" class="suggestions"></div>
+
+    <button id="startBtn">Start Journey</button>
+  </div>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <!-- <div id="controls" style="padding: 20px;">
     <input id="originBox" placeholder="Start location" style="width: 300px;">
     <div id="originSuggestions" class="suggestions"></div>
 
@@ -26,51 +52,75 @@
     <br><br>
 
     <button id="startBtn">Start Journey</button>
-  </div>
+  </div> -->
 
   <script type="module">
+    // the script block contains JavaScript code that
     let origin = null;
     let destination = null;
 
     async function fetchSuggestions(query) {
+      // guard clause for null, undefined, etc.
         if (!query || query.length < 3) return [];
         try {
+          //request 
           const res = await fetch(`/autocomplete?input=${encodeURIComponent(query)}`);
           //handles HTTP-level failures
           if (!res.ok) return [];
           const data = await res.json();
 
           // Map the server response into { description, placeId } objects
-          return (data.suggestions || []).map(item => {
+          const results = (data.suggestions || []).map(item => {
             const pp = item.placePrediction;
             return {
               description: pp.text?.text || pp.structuredFormat?.mainText?.text || "",
               placeId: pp.placeId
             };
           });
-        console.log("Suggestions returned:", results);
+          console.log("Suggestions returned:", results);
+          return results
         // handles network/runtime failures
         } catch (e) {
+          console.error("Fetch failed", e);
           return [];
-        }
       }
+    }
 
 
     function setupInput(inputEl, suggestionsEl, setter) {
+      // inputEl is like passing in the text box
+      // the addEventListener is 
+      // inputEl is a reference to a real <input> DOM element object
+      // this runs only when the user types 
+      // console.log("what type is inputEl: ", typeof inputEl);
+      //The setter exists so that the same setupInput function can be used for both the origin box and the destination box without knowing which one it's handling.
+
       inputEl.addEventListener("input", async () => {
         const q = inputEl.value;
         const results = await fetchSuggestions(q);
 
+        //avoids repeat suggestions, clears slate
         suggestionsEl.innerHTML = "";
-
+        //TODO: rewrite variable names to make it more clear
+        //what is happening. Or at lease write comments.
         results.forEach((item) => {
+          // create a div element for each suggestion item that was return by fetchSuggestions
           const div = document.createElement("div");
+          // set the class for that suggestion item
           div.className = "suggestion-item";
+          // set the text content for the div to be the suggestion description
+          // TODO: look up what that property actually looks like
           div.textContent = item.description;
+          // If the user clicks on a suggestion:
+          // 
           div.onclick = () => {
             console.log("Clicked suggestion:", item.description);
+            // populate the input box (visible to the user) with
+            // the item description that the user clicked on 
             inputEl.value = item.description;
+            // set the variable origin or destination, depending, to equal the item description
             setter(item.description);
+
             suggestionsEl.innerHTML = "";
           };
           suggestionsEl.appendChild(div);
@@ -91,6 +141,7 @@
       (val) => (destination = val)
     );
 
+
     document.getElementById("startBtn").onclick = () => {
       if (!origin || !destination) {
         alert("Please select both origin and destination.");
@@ -98,9 +149,10 @@
       }
 
       // Expose to sketch.js
+      // make origin and destination variables global properties of window
       window.selectedOrigin = origin;
       window.selectedDestination = destination;
-
+      // hides controls page to make way for sketch.
       document.getElementById("controls").style.display = "none";
 
       import("/sketch.js");
@@ -113,6 +165,7 @@
       border: 1px solid #ccc;
       width: 300px;
       position: absolute;
+      /* position:sticky; */
       z-index: 10;
     }
 

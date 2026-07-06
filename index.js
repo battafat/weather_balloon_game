@@ -23,7 +23,6 @@ app.use(express.static('public'));
 // });
 
 //server endpoint that gets called when a client (browser) sends an HTTP request
-
 app.get("/autocomplete", async (req, res) => {
     // const input = req.query.input
     const { input } = req.query;
@@ -258,6 +257,7 @@ app.get("/photo", async (req, res) => {
     }
 
     try {
+        // there might be an updated version of this API
         const photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${ref}&key=${apiKey}`;
         const response = await fetch(photoUrl);
 
