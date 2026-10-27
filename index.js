@@ -6,6 +6,10 @@ import fetch from "node-fetch"; // a module for Fetch API in node.js. Enables se
 import polyline from "@mapbox/polyline"; // used to decode google polyline into [lat, lng] coordinate pairs
 import dotenv from "dotenv"; // module to load enviromnet variables from .env file to hide API keys
 
+const person = {name: "dog", breed: "retriever"};
+console.log(person);
+console.log(`person: ${person}`);
+console.log("person: ", person)
 
 dotenv.config(); // loads the variables (like google API key) into Node.js runtime.
 
@@ -25,7 +29,9 @@ app.use(express.static('public'));
 //server endpoint that gets called when a client (browser) sends an HTTP request
 app.get("/autocomplete", async (req, res) => {
     // const input = req.query.input
+    // req.query contains the URL query parameters.
     const { input } = req.query;
+    //guard clause for no input value
     if (!input) return res.status(400).json({ error: "Missing input" });
 
     try {
@@ -46,6 +52,10 @@ app.get("/autocomplete", async (req, res) => {
         const data = await response.json();
         console.log("🔹 Google Autocomplete full response:", JSON.stringify(data, null, 2)); // log everything
         //serialize JavaScript object into JSON
+        //parsing to JSON from JavaScript object is currently redundant but is a useful pattern for later if 
+        //something needs to be tested or filtered in the future before being sent back to the frontend, 
+        // ie. checking data Type.
+        
         res.json(data); // just return everything for testing. This ends the response and forwards it to the client.
 
     } catch (err) {
@@ -60,8 +70,9 @@ app.get("/autocomplete", async (req, res) => {
 // ✅ Helper function to call Google Routes API (walking + durations)
 async function getWalkingRoute(origin, destination, apiKey) {
     const url = "https://routes.googleapis.com/directions/v2:computeRoutes";
-
+    //only origin and destination are required fields for Google Routes API
     const body = {
+        //place IDs and lat/lon can be used as substitute for addresses
         origin: { address: origin },
         destination: { address: destination },
         travelMode: "WALK",
@@ -130,7 +141,7 @@ async function getFormattedAddress(query, apiKey) {
     const response = await fetch(url);
     const data = await response.json();
 
-    if (data.status !== "OK" || !data.results.length) {
+    if (data.status !== "OK" || !data.results?.length) {
         console.warn(`⚠️ No address found for query: ${query}`);
         return query; // fallback: just return original input
     }
@@ -202,6 +213,7 @@ app.get("/route", async (req, res) => {
         let cumulativeSeconds = 0;
 
         const stepsWithArrival = route.legs[0].steps.map((step) => {
+            //TODO: Do I use durationSeconds anymore? I think it is obsolete.
             const durationSeconds =
                 (step.distanceMeters / totalDistanceMeters) * totalDurationSeconds;
             cumulativeSeconds += durationSeconds;
@@ -246,7 +258,7 @@ app.get("/route", async (req, res) => {
         res.status(500).json({ error: "Something went wrong computing the walking route" });
     }
 });
-
+//TODO: What happens if a valid response is returned but there are no nearby photos?
 // ✅ Proxy route to serve Google Place photos and avoid CORS issues
 app.get("/photo", async (req, res) => {
     const { ref } = req.query;

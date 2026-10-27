@@ -13,16 +13,15 @@
 
 <body>
   <div id="controls" style="padding: 20px;">
-    <input id="originBox" placeholder="origin address">
+    <input id="originBox" placeholder="origin address" class="input-location">
     <div id="originSuggestions" class="suggestions"></div>
     <br><br>
-    <input id="destinationBox" placeholder="destination address">
+    <input id="destinationBox" placeholder="destination address" class="input-location">
     <div id="destinationSuggestions" class="suggestions"></div>
 
     <button id="startBtn">Start Journey</button>
   </div>
 
-  
   
   
   
@@ -60,73 +59,158 @@
     let destination = null;
 
     async function fetchSuggestions(query) {
-      // guard clause for null, undefined, etc.
-        if (!query || query.length < 3) return [];
+        //guard clause
+        if (query < 3 || !query) {
+          return [];
+        }
         try {
-          //request 
+          // try to fetch suggestions from google API through server; async
           const res = await fetch(`/autocomplete?input=${encodeURIComponent(query)}`);
-          //handles HTTP-level failures
-          if (!res.ok) return [];
-          const data = await res.json();
-
-          // Map the server response into { description, placeId } objects
-          const results = (data.suggestions || []).map(item => {
+          // guard clause to check if the fetch returned anything.
+          if (!res.ok) {
+            return []
+          }
+          console.log("Did the server route work?: ", res);
+          // parse the fetch response into json
+          const suggestions = await res.json();
+          console.log("did the fetch and parse work?: ", suggestions);
+          //answer: yes, it worked!
+          const parsedSuggestions = (suggestions.suggestions || []).map((item) => {
             const pp = item.placePrediction;
             return {
               description: pp.text?.text || pp.structuredFormat?.mainText?.text || "",
-              placeId: pp.placeId
+              id: item.placeID
             };
           });
-          console.log("Suggestions returned:", results);
-          return results
-        // handles network/runtime failures
-        } catch (e) {
-          console.error("Fetch failed", e);
-          return [];
+          return parsedSuggestions
+        } catch (error) {
+          console.log("fetchFailed: ", error);
+          return []
+        }
+        
       }
-    }
+    
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // async function fetchSuggestions(query) {
+    //   // guard clause for null, undefined, etc.
+    //     if (!query || query.length < 3) return [];
+    //     try {
+    //       //request 
+    //       const res = await fetch(`/autocomplete?input=${encodeURIComponent(query)}`);
+    //       //handles HTTP-level failures
+    //       if (!res.ok) return [];
+    //       const data = await res.json();
+    //       console.log("data", data);
+    //       // Map the server response into { description, placeId } objects
+    //       const results = (data.suggestions || []).map(item => {
+    //         const pp = item.placePrediction;
+    //         console.log("This is what pp object looks like: ", pp);
+    //         return {
+    //           description: pp.text?.text || pp.structuredFormat?.mainText?.text || "",
+    //           placeId: pp.placeId
+    //         };
+    //       });
+    //       console.log("Suggestions returned:", results);
+    //       return results
+    //     // handles network/runtime failures
+    //     } catch (e) {
+    //       console.error("Fetch failed", e);
+    //       return [];
+    //   }
+    // }
 
     function setupInput(inputEl, suggestionsEl, setter) {
-      // inputEl is like passing in the text box
-      // the addEventListener is 
-      // inputEl is a reference to a real <input> DOM element object
-      // this runs only when the user types 
-      // console.log("what type is inputEl: ", typeof inputEl);
-      //The setter exists so that the same setupInput function can be used for both the origin box and the destination box without knowing which one it's handling.
-
-      inputEl.addEventListener("input", async () => {
-        const q = inputEl.value;
-        const results = await fetchSuggestions(q);
-
-        //avoids repeat suggestions, clears slate
-        suggestionsEl.innerHTML = "";
-        //TODO: rewrite variable names to make it more clear
-        //what is happening. Or at lease write comments.
-        results.forEach((item) => {
-          // create a div element for each suggestion item that was return by fetchSuggestions
-          const div = document.createElement("div");
-          // set the class for that suggestion item
-          div.className = "suggestion-item";
-          // set the text content for the div to be the suggestion description
-          // TODO: look up what that property actually looks like
-          div.textContent = item.description;
-          // If the user clicks on a suggestion:
-          // 
-          div.onclick = () => {
-            console.log("Clicked suggestion:", item.description);
-            // populate the input box (visible to the user) with
-            // the item description that the user clicked on 
-            inputEl.value = item.description;
-            // set the variable origin or destination, depending, to equal the item description
-            setter(item.description);
-
-            suggestionsEl.innerHTML = "";
-          };
-          suggestionsEl.appendChild(div);
+        // const promise = fetchSuggestions("denver");
+        // console.log("this is the promise: ", promise)
+        inputEl.addEventListener("input", async () => {
+          suggestionsEl.innerHTML = "";
+          const res = await fetchSuggestions(inputEl.value);
+          console.log("this is the promise: ", res);
+          res.forEach(element => {
+            const div = document.createElement("div");
+            div.textContent = element.description;
+            div.className = "suggestion-item";
+            
+            div.onclick = () => {
+              inputEl.value = element.description;
+              setter(element.description);
+              suggestionsEl.innerHTML = "";
+            }
+            suggestionsEl.appendChild(div);
+          });
         });
-      });
-    }
+        
+      }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // function setupInput(inputEl, suggestionsEl, setter) {
+    //   // inputEl is like passing in the text box
+    //   // the addEventListener is 
+    //   // inputEl is a reference to a real <input> DOM element object
+    //   // this runs only when the user types 
+    //   // console.log("what type is inputEl: ", typeof inputEl);
+    //   //The setter exists so that the same setupInput function can be used for both the origin box and the destination box without knowing which one it's handling.
+    //   // TODO: Consider adding a redundant (?) guard clause to check if the user has typed at least three
+    //   // characters so as not to call fetchSuggestion at all 
+    //   inputEl.addEventListener("input", async () => {
+    //     const q = inputEl.value;
+    //     const results = await fetchSuggestions(q);
+
+    //     //avoids repeat suggestions, clears slate
+    //     suggestionsEl.innerHTML = "";
+    //     //TODO: rewrite variable names to make it more clear
+    //     //what is happening. Or at lease write comments.
+    //     results.forEach((item) => {
+    //       // create a div element for each suggestion item that was return by fetchSuggestions
+    //       const div = document.createElement("div");
+    //       // set the class for that suggestion item
+    //       div.className = "suggestion-item";
+    //       // set the text content for the div to be the suggestion description
+    //       // TODO: look up what that property actually looks like
+    //       div.textContent = item.description;
+    //       // If the user clicks on a suggestion:
+    //       // 
+    //       div.onclick = () => {
+    //         console.log("Clicked suggestion:", item.description);
+    //         // populate the input box (visible to the user) with
+    //         // the item description that the user clicked on 
+    //         inputEl.value = item.description;
+    //         // set the variable origin or destination, depending, to equal the item description
+    //         setter(item.description);
+
+    //         suggestionsEl.innerHTML = "";
+    //       };
+    //       suggestionsEl.appendChild(div);
+    //     });
+    //   });
+    // }
 
     // Attach logic to both input fields
     setupInput(
@@ -141,22 +225,49 @@
       (val) => (destination = val)
     );
 
-
     document.getElementById("startBtn").onclick = () => {
-      if (!origin || !destination) {
-        alert("Please select both origin and destination.");
+      //guard clause
+      if (!origin || !destination){
+        alert("Choose origin and destination");
         return;
       }
-
-      // Expose to sketch.js
-      // make origin and destination variables global properties of window
+      //set global variables for sketch to use
       window.selectedOrigin = origin;
       window.selectedDestination = destination;
-      // hides controls page to make way for sketch.
+      //hide controls before displaying sketch
       document.getElementById("controls").style.display = "none";
-
+      //run sketch
       import("/sketch.js");
-    };
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // document.getElementById("startBtn").onclick = () => {
+    //   if (!origin || !destination) {
+    //     alert("Please select both origin and destination.");
+    //     return;
+    //   }
+
+    //   // Expose to sketch.js
+    //   // make origin and destination variables global properties of window
+    //   window.selectedOrigin = origin;
+    //   window.selectedDestination = destination;
+    //   // hides controls page to make way for sketch.
+    //   document.getElementById("controls").style.display = "none";
+
+    //   import("/sketch.js");
+    // };
   </script>
 
   <style>
@@ -176,6 +287,10 @@
 
     .suggestion-item:hover {
       background: #eee;
+    }
+
+    .input-location {
+      width: 300px;
     }
   </style>
 
